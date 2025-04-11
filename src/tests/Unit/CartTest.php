@@ -1,35 +1,28 @@
 <?php
 
-
-use App\Domain\Cart;
-use App\Domain\Product;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use App\Domain\Cart\Cart;
+use App\Domain\Cart\CartItem;
+use App\Domain\Product\Product;
+use App\Domain\Category\Category;
 
 class CartTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-
     #[Test]
-    public function it_should_create_an_product(): void
+    public function it_should_return_all_cart_items(): void
     {
-        $cart = new Cart([
-            new Product(
-                name: 'Domain Driven Design Book',
-                description: 'Book about domain driven design',
-                price: 299.2,
-                categoryId: '1'
-            ),
-            new Product(
-                name: 'Domain Driven Design Book 2',
-                description: 'Book about domain driven design 2',
-                price: 299.2,
-                categoryId: '1'
-            )
-        ]);
-        dump($cart);
-        $this->assertTrue(true);
+        $category = new Category(1, 'Books');
+        $product = new Product('Clean Code', 'Book about clean code', 50.00, $category);
+
+        $cart = new Cart();
+        $cart->addItem(new CartItem($product, 2));
+
+        $items = $cart->items();
+
+        $this->assertCount(1, $items);
+        $this->assertInstanceOf(CartItem::class, $items[0]);
+        $this->assertEquals(100.00, $items[0]->getTotal());
     }
+
 }

@@ -1,0 +1,55 @@
+networks:
+  ecoop-network:
+    driver: bridge
+    ipam:
+      driver: default
+
+services:
+  ecoop-nginx:
+    container_name: ecoop-nginx
+    image: nginx
+    ports:
+      - '${FORWARD_APP_PORT:-8080}:80'
+    depends_on:
+      - ecoop
+    volumes:
+      - ./src:/var/www
+      - ./docker/nginx/app.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - ecoop-network
+
+  ecoop:
+    container_name: ecoop
+    build:
+      context: docker
+      dockerfile: app.Dockerfile
+    image: ecoop
+    volumes:
+      - ./src:/var/www
+    networks:
+      - ecoop-network
+
+  ecoop-db:
+    container_name: ecoop-db
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: ecoop
+    ports:
+      - '${FORWARD_DB_PORT:-3306}:3306'
+    volumes:
+      - ecoop-db-volume:/var/lib/mysql
+    networks:
+      - ecoop-network
+
+  ecoop-redis:
+    container_name: ecoop-redis
+    image: redis:alpine
+    restart: unless-stopped
+    ports:
+      - '${FORWARD_REDIS_PORT:-6379}:6379'
+    networks:
+      - ecoop-network
+
+volumes:
+  ecoop-db-volume:
